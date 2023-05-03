@@ -24,6 +24,7 @@ class Application(Frame):
     def calibrate(self):
         self.calibration = []
         print(self.scale)  #################################################################################
+        print(len(self.calibration) == 2)
         if len(self.calibration) == 2:
             self.DX = self.scale/self.distance()
             print(self.DX)
