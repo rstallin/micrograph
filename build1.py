@@ -16,6 +16,9 @@ class Application(Frame):
 
         self.calibration = [] # keep track of calibration coordinates
         self.ent_calibrate = None
+        self.btn_calibrate = None
+        self.btn_generate = None
+        self.btn_calculate = None
         self.btn_ok = None
         self.drop = None
         self.var = StringVar(self, value="mm")
@@ -29,9 +32,14 @@ class Application(Frame):
         self.mode = 1
         self.toggle_to("normal")
         self.canvas.delete("calibration")
+        self.canvas.delete("line")
         notice1 = Label(text="click 2 points to calibrate", name="notice1").place(x=0,y=self.img_dim[1]+40)
+        self.btn_generate.config(state="disabled")
+        self.btn_calculate.config(state="disabled")
 
     def generate(self):
+        self.mode = 2
+
         # define bounding box x/3 and y/3
         bx = self.img_dim[0] // 3
         by = self.img_dim[1] // 3
@@ -43,15 +51,18 @@ class Application(Frame):
         o1 = randint(0,360)*math.pi/180
         # 
         r = min([bx,by])
-        end1x = p[0] + round(r*math.cos(o1))
-        end1y = p[1] + round(r*math.sin(o1))
-        end2x = p[0] - round(r*math.cos(o1))
-        end2y = p[1] - round(r*math.sin(o1))
+        e1x = p[0] + round(r*math.cos(o1))
+        e1y = p[1] + round(r*math.sin(o1))
+        e2x = p[0] - round(r*math.cos(o1))
+        e2y = p[1] - round(r*math.sin(o1))
 
         # display new line and delete old line
 
         self.canvas.delete("line")
-        self.canvas.create_line(end1x, end1y, end2x, end2y, fill="yellow", tags="line", width=2)
+        self.canvas.create_line(e1x, e1y, e2x, e2y, fill="yellow", tags="line", width=2)
+        dist = self.distance((e1x,e1y), (e2x,e2y))
+        line_len = round(dist*self.DX*self.get_magnitude())
+        print(str(line_len) + self.var.get())
 
         
 
@@ -105,14 +116,14 @@ class Application(Frame):
         self.master.geometry("{}x{}".format(wid+150,height+75))
 
         # initialize buttons for UI
-        btn_calibrate = Button(text="Calibrate",width=10,height=2, bg="white", fg="black", command=self.calibrate)
-        btn_calibrate.place(x=wid,y=0)
+        self.btn_calibrate = Button(text="Calibrate",width=10,height=2, bg="white", fg="black", command=self.calibrate)
+        self.btn_calibrate.place(x=wid,y=0)
 
-        btn_generate = Button(text="Generate",width=10,height=2, bg="white", fg="black", command=self.generate)
-        btn_generate.place(x=wid,y=50)
+        self.btn_generate = Button(text="Generate",width=10,height=2, bg="white", fg="black", command=self.generate)
+        self.btn_generate.place(x=wid,y=50)
 
-        btn_calculate = Button(text="Calculate",width=10,height=2, bg="white", fg="black", justify="center")
-        btn_calculate.place(x=wid,y=100)
+        self.btn_calculate = Button(text="Calculate",width=10,height=2, bg="white", fg="black", justify="center")
+        self.btn_calculate.place(x=wid,y=100)
 
         self.ent_calibrate = Entry(bg="#D3D3D3",fg="black", insertbackground="black", width=10)
         self.ent_calibrate.place(x=0,y=height+10)
@@ -125,28 +136,35 @@ class Application(Frame):
 
         # gray out buttons until calibration done
         self.toggle_to("disabled")
+        self.btn_generate.config(state="disabled")
+        self.btn_calculate.config(state="disabled")
 
 
     def ok(self):
         scale = self.magnitude()
         self.DX = scale/self.distance(self.calibration[0], self.calibration[1])
         self.toggle_to("disabled")
+        self.btn_generate.config(state="normal")
+        self.btn_calculate.config(state="normal")
         # self.delete('notice1')
 
     def magnitude(self):
         dist = 0
         if self.ent_calibrate.get():
             dist = int(self.ent_calibrate.get())
-        v = self.var.get()
+        return dist/self.get_magnitude()
+        
 
+    def get_magnitude(self):
+        v = self.var.get()
         if v == "mm":
-            return dist/(10**3)
+            return 10**3
         elif v == u'\u03BC'+"m":
-            return dist/(10**6)
+            return 10**6
         elif v == "nm":
-            return dist/(10**9)
+            return 10**9
         else:
-            return dist/(10**12)
+            return 10**12
 
 
 
@@ -174,9 +192,8 @@ class Application(Frame):
 
 
     def distance(self, p1, p2):
-        c = self.calibration
         dx = p1[0] - p2[0]
-        dy = p1[0] - p2[1]
+        dy = p1[1] - p2[1]
         return math.sqrt(dx**2 + dy**2)
 
 
