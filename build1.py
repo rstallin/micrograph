@@ -41,6 +41,7 @@ class Application(Frame):
 
 
     def create_open_window(self):
+        self.master.geometry("200x200+500+200")
         # create initial file select window
         self.label = Label(self, text="Click button to browse files")
         self.label.pack(pady=10)
@@ -76,7 +77,7 @@ class Application(Frame):
         height = self.img_dim[1]
 
         # set dimensions of frame
-        self.master.geometry("{}x{}".format(wid+175,height+75))
+        self.master.geometry("{}x{}+{}+{}".format(wid+175,height+75,100,50))
 
         # initialize widgets for UI
         self.btn_calibrate = Button(text="Calibrate",width=10,height=2, bg="white", fg="black", command=self.calibrate)
@@ -281,5 +282,6 @@ class Application(Frame):
 
 
 root = Tk()
+root.title("FimageJ")
 app = Application(master=root)
 app.mainloop()
